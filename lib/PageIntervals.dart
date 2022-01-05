@@ -54,7 +54,7 @@ class _PageIntervalsState extends State<PageIntervals> {
                   const Divider(),
             ),
             floatingActionButton: FloatingActionButton(
-              child: active ? Icon(Icons.play_arrow) : Icon(Icons.pause),
+              child: active ? Icon(Icons.pause) : Icon(Icons.play_arrow),
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
               onPressed: () => setState(() {
