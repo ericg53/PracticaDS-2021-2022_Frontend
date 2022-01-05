@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:time_tracker/tree.dart' as Tree hide getTree;
-import 'package:time_tracker/requests.dart';
+import 'dart:async';
 
+import 'package:codelab_timetraker/page_activities.dart';
+import 'package:flutter/material.dart';
+import 'package:codelab_timetraker/tree.dart' as Tree hide getTree;
+import 'package:codelab_timetraker/requests.dart';
+import 'dart:async';
 class PageIntervals extends StatefulWidget {
   final int id; // final because StatefulWidget is immutable
 
@@ -14,12 +17,27 @@ class _PageIntervalsState extends State<PageIntervals> {
   late int id;
   late bool active = true;
   late Future<Tree.Tree> futureTree;
-
+  late Timer _timer;
+  static const int periodeRefresh = 1;
+  void _activateTimer() {
+    _timer = Timer.periodic(Duration(seconds: periodeRefresh), (Timer t) {
+      futureTree = getTree(id);
+      setState(() {});
+    });
+  }
   @override
   void initState() {
     super.initState();
     id = widget.id;
     futureTree = getTree(id);
+    _activateTimer();
+  }
+  @override
+  void dispose() {
+    // "The framework calls this method when this State object will never build again"
+    // therefore when going up
+    _timer.cancel();
+    super.dispose();
   }
 
   Widget build(BuildContext context) {
@@ -38,10 +56,17 @@ class _PageIntervalsState extends State<PageIntervals> {
             appBar: AppBar(
               title: Text(snapshot.data!.root.name),
               actions: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.home),
-                  onPressed: () {}, // TODO
-                )
+                IconButton(icon: Icon(Icons.home),
+                    onPressed: () {
+                      while(Navigator.of(context).canPop()) {
+                        print("pop");
+                        Navigator.of(context).pop();
+                      }
+                      /* this works also:
+    Navigator.popUntil(context, ModalRoute.withName('/'));
+  */
+                      PageActivities(0);
+                    }),
               ],
             ),
             body: ListView.separated(
@@ -51,10 +76,10 @@ class _PageIntervalsState extends State<PageIntervals> {
               itemBuilder: (BuildContext context, int index) =>
                   _buildRow(snapshot.data!.root.children[index], index),
               separatorBuilder: (BuildContext context, int index) =>
-                  const Divider(),
+              const Divider(),
             ),
             floatingActionButton: FloatingActionButton(
-              child: active ? Icon(Icons.play_arrow) : Icon(Icons.pause),
+              child: active ? Icon(Icons.pause) : Icon(Icons.play_arrow),
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
               onPressed: () => setState(() {
